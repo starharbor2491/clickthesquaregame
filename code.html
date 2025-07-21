@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aim Trainer with Shop</title>
+  <style>
+      body {
+          margin: 0;
+          padding: 0;
+          background-color: #1a1a1a;
+          color: white;
+          font-family: Arial, sans-serif;
+          overflow: hidden;
+      }
+      
+      #gameArea {
+          width: 100vw;
+          height: 100vh;
+          position: relative;
+          cursor: crosshair;
+      }
+      
+      .target {
+          background-color: #ff4444;
+          position: absolute;
+          border: 2px solid #ffffff;
+          cursor: pointer;
+          transition: all 0.1s ease;
+          border-radius: 5px;
+      }
+      
+      .target:hover {
+          background-color: #ff6666;
+      }
+
+      .rainbow-target {
+          background: linear-gradient(45deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #4400ff, #8800ff);
+          background-size: 400% 400%;
+          animation: rainbowPulse 2s ease-in-out infinite;
+      }
+
+      .rainbow-target:hover {
+          background: linear-gradient(45deg, #ff4444, #ffaa44, #ffff44, #44ff44, #44aaff, #6644ff, #aa44ff);
+          background-size: 400% 400%;
+          animation: rainbowPulse 1s ease-in-out infinite;
+      }
+
+      @keyframes rainbowPulse {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+      }
+      
+      #ui {
+          position: fixed;
+          top: 20px;
+          left: 20px;
+          z-index: 100;
+      }
+      
+      #score, #coins, #speed, #multiplier {
+          font-size: 20px;
+          margin-bottom: 8px;
+      }
+      
+      #coins {
+          color: #ffdd00;
+      }
+      
+      #speed {
+          color: #ffaa00;
+      }
+
+      #multiplier {
+          color: #ff44ff;
+      }
+      
+      #resetBtn, #shopBtn {
+          padding: 8px 16px;
+          font-size: 14px;
+          background-color: #4444ff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          margin-right: 10px;
+          margin-bottom: 5px;
+      }
+      
+      #resetBtn:hover, #shopBtn:hover {
+          background-color: #6666ff;
+      }
+      
+      #shopBtn {
+          background-color: #44aa44;
+      }
+      
+      #shopBtn:hover {
+          background-color: #66cc66;
+      }
+      
+      #shop {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background-color: #2a2a2a;
+          border: 2px solid #555;
+          border-radius: 10px;
+          padding: 20px;
+          z-index: 200;
+          display: none;
+          max-height: 80vh;
+          overflow-y: auto;
+          min-width: 400px;
+      }
+      
+      #shop h2 {
+          margin-top: 0;
+          color: #ffdd00;
+          text-align: center;
+      }
+      
+      .upgrade {
+          background-color: #333;
+          border: 1px solid #555;
+          border-radius: 5px;
+          padding: 15px;
+          margin-bottom: 10px;
+      }
+      
+      .upgrade h3 {
+          margin: 0 0 5px 0;
+          color: #66ccff;
+      }
+      
+      .upgrade p {
+          margin: 5px 0;
+          font-size: 14px;
+          color: #ccc;
+      }
+      
+      .upgrade-info {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 10px;
+      }
+      
+      .upgrade-cost {
+          color: #ffdd00;
+          font-weight: bold;
+      }
+      
+      .upgrade-level {
+          color: #88ff88;
+          font-size: 12px;
+      }
+      
+      .buy-btn {
+          padding: 5px 15px;
+          background-color: #44aa44;
+          color: white;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+          font-size: 12px;
+      }
+      
+      .buy-btn:hover {
+          background-color: #66cc66;
+      }
+      
+      .buy-btn:disabled {
+          background-color: #666;
+          cursor: not-allowed;
+      }
+      
+      #closeShop {
+          position: absolute;
+          top: 10px;
+          right: 15px;
+          background: none;
+          border: none;
+          color: #ff4444;
+          font-size: 20px;
+          cursor: pointer;
+      }
+      
+      .coin-popup {
+          position: absolute;
+          color: #ffdd00;
+          font-weight: bold;
+          font-size: 16px;
+          pointer-events: none;
+          z-index: 150;
+          animation: coinFloat 1s ease-out forwards;
+      }
+      
+      @keyframes coinFloat {
+          0% { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-50px); }
+      }
+
+      #cheatInput {
+          padding: 6px;
+          border-radius: 4px;
+          border: 1px solid #444;
+          width: 180px;
+          background-color: #333;
+          color: white;
+      }
+
+      #cheatBtn {
+          padding: 6px 12px;
+          margin-left: 8px;
+          background: #ff44cc;
+          color: #fff;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+      }
+
+      #cheatBtn:hover {
+          background: #ff66dd;
+      }
+
+      #cheatMsg {
+          color: #ffdd00;
+          font-size: 13px;
+          margin-top: 5px;
+          min-height: 18px;
+      }
+
+      .rainbow-text {
+          background: linear-gradient(45deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #4400ff, #8800ff);
+          background-size: 400% 400%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          animation: rainbowPulse 3s ease-in-out infinite;
+      }
+  </style>
+</head>
+<body>
+  <div id="gameArea">
+      <div id="ui">
+          <div id="score">Score: 0</div>
+          <div id="coins">Coins: 0</div>
+          <div id="speed">Speed: 1.0x</div>
+          <div id="multiplier" style="display:none;">Multiplier: 10x</div>
+          <button id="resetBtn">Reset</button>
+          <button id="shopBtn">Shop</button>
+      </div>
+  </div>
+
+  <div id="shop">
+      <button id="closeShop">×</button>
+      <h2>🛒 Upgrade Shop</h2>
+      
+      <!-- Cheat code box -->
+      <div style="text-align:center;margin-bottom:15px;">
+          <input id="cheatInput" type="text" placeholder="Enter cheat code">
+          <button id="cheatBtn">Redeem</button>
+          <div id="cheatMsg"></div>
+      </div>
+
+      <!-- Upgrades -->
+      <div class="upgrade" id="coinsPerHit">
+          <h3>💰 Coin Multiplier</h3>
+          <p>Increase coins earned per hit</p>
+          <div class="upgrade-info">
+              <span class="upgrade-level">Level: <span id="coinsLevel">1</span></span>
+              <span class="upgrade-cost">Cost: <span id="coinsCost">10</span> coins</span>
+              <button class="buy-btn" onclick="buyUpgrade('coinsPerHit')">Buy</button>
+          </div>
+      </div>
+      
+      <div class="upgrade" id="targetSize">
+          <h3>🎯 Bigger Targets</h3>
+          <p>Make targets larger and easier to hit</p>
+          <div class="upgrade-info">
+              <span class="upgrade-level">Level: <span id="sizeLevel">0</span></span>
+              <span class="upgrade-cost">Cost: <span id="sizeCost">25</span> coins</span>
+              <button class="buy-btn" onclick="buyUpgrade('targetSize')">Buy</button>
+          </div>
+      </div>
+      
+      <div class="upgrade" id="slowMotion">
+          <h3>⏰ Slow Motion</h3>
+          <p>Reduce target movement speed</p>
+          <div class="upgrade-info">
+              <span class="upgrade-level">Level: <span id="slowLevel">0</span></span>
+              <span class="upgrade-cost">Cost: <span id="slowCost">50</span> coins</span>
+              <button class="buy-btn" onclick="buyUpgrade('slowMotion')">Buy</button>
+          </div>
+      </div>
+      
+      <div class="upgrade" id="multiTarget">
+          <h3>🎯 Multi-Target</h3>
+          <p>Spawn additional targets (max 3)</p>
+          <div class="upgrade-info">
+              <span class="upgrade-level">Level: <span id="multiLevel">0</span></span>
+              <span class="upgrade-cost">Cost: <span id="multiCost">100</span> coins</span>
+              <button class="buy-btn" onclick="buyUpgrade('multiTarget')">Buy</button>
+          </div>
+      </div>
+      
+      <div class="upgrade" id="goldTarget">
+          <h3>✨ Golden Targets</h3>
+          <p>Rare golden targets worth 5x coins</p>
+          <div class="upgrade-info">
+              <span class="upgrade-level">Level: <span id="goldLevel">0</span></span>
+              <span class="upgrade-cost">Cost: <span id="goldCost">200</span> coins</span>
+              <button class="buy-btn" onclick="buyUpgrade('goldTarget')">Buy</button>
+          </div>
+      </div>
+
+      <!-- Skins Section -->
+      <div id="skinsSection" style="margin-top:25px;">
+          <h2 style="color:#88ff88;text-align:center;">🎨 Skins</h2>
+          <div class="upgrade" id="skin-red">
+              <h3 style="color:#ff4444;">Red Classic</h3>
+              <div class="upgrade-info">
+                  <span style="color:#ccc;">Default</span>
+                  <button class="buy-btn" onclick="selectSkin('red')">Select</button>
+              </div>
+          </div>
+          <div class="upgrade" id="skin-blue">
+              <h3 style="color:#4444ff;">Blue</h3>
+              <div class="upgrade-info">
+                  <span class="upgrade-cost">Cost: 500 coins</span>
+                  <button class="buy-btn" onclick="buySkin('blue')">Buy</button>
+              </div>
+          </div>
+          <div class="upgrade" id="skin-green">
+              <h3 style="color:#44ff44;">Green</h3>
+              <div class="upgrade-info">
+                  <span class="upgrade-cost">Cost: 750 coins</span>
+                  <button class="buy-btn" onclick="buySkin('green')">Buy</button>
+              </div>
+          </div>
+          <div class="upgrade" id="skin-gold">
+              <h3 style="color:#ffdd00;">Gold</h3>
+              <div class="upgrade-info">
+                  <span class="upgrade-cost">Cost: 1000 coins</span>
+                  <button class="buy-btn" onclick="buySkin('gold')">Buy</button>
+              </div>
+          </div>
+          <div class="upgrade" id="skin-rainbow" style="display:none;">
+              <h3 class="rainbow-text">🌈 Rainbow (Secret!)</h3>
+              <div class="upgrade-info">
+                  <span style="color:#ff44cc;">Unlocked!</span>
+                  <button class="buy-btn" onclick="selectSkin('rainbow')">Select</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <script>
+      let score = 0;
+      let coins = 0;
+      let speed = 1.0;
+      let moveInterval;
+      let targets = [];
+      let headshotMultiplier = false;
+      let rainbowUnlocked = false;
+      let starharborUsed = false;
+      let headshotUsed = false;
+      
+      let upgrades = {
+          coinsPerHit: { level: 1, cost: 10, maxLevel: 10 },
+          targetSize: { level: 0, cost: 25, maxLevel: 5 },
+          slowMotion: { level: 0, cost: 50, maxLevel: 5 },
+          multiTarget: { level: 0, cost: 100, maxLevel: 3 },
+          goldTarget: { level: 0, cost: 200, maxLevel: 1 }
+      };
+
+      let skins = {
+          red: { owned: true, color: '#ff4444' },
+          blue: { owned: false, color: '#4444ff' },
+          green: { owned: false, color: '#44ff44' },
+          gold: { owned: false, color: '#ffdd00' },
+          rainbow: { owned: false, color: 'rainbow' }
+      };
+      let selectedSkin = 'red';
+      
+      const scoreDisplay = document.getElementById('score');
+      const coinsDisplay = document.getElementById('coins');
+      const speedDisplay = document.getElementById('speed');
+      const multiplierDisplay = document.getElementById('multiplier');
+      const resetBtn = document.getElementById('resetBtn');
+      const shopBtn = document.getElementById('shopBtn');
+      const shop = document.getElementById('shop');
+      const closeShop = document.getElementById('closeShop');
+      const gameArea = document.getElementById('gameArea');
+      
+      function createTarget(isGolden = false) {
+          const target = document.createElement('div');
+          target.className = 'target';
+          target.style.width = (50 + upgrades.targetSize.level * 10) + 'px';
+          target.style.height = (50 + upgrades.targetSize.level * 10) + 'px';
+          target.style.position = 'absolute';
+          target.style.border = '2px solid #ffffff';
+          target.style.cursor = 'pointer';
+          target.style.borderRadius = '5px';
+          target.style.transition = 'all 0.1s ease';
+          target.isGolden = isGolden;
+          
+          if (isGolden) {
+              target.style.backgroundColor = '#ffdd00';
+          } else if (selectedSkin === 'rainbow') {
+              target.className += ' rainbow-target';
+              target.style.backgroundColor = 'transparent';
+          } else {
+              target.style.backgroundColor = skins[selectedSkin].color;
+          }
+          
+          const pos = getRandomPosition();
+          target.style.left = pos.x + 'px';
+          target.style.top = pos.y + 'px';
+          
+          target.addEventListener('click', function() {
+              hitTarget(target);
+          });
+          
+          if (selectedSkin !== 'rainbow') {
+              target.addEventListener('mouseenter', function() {
+                  if (isGolden) {
+                      target.style.backgroundColor = '#ffee44';
+                  } else {
+                      const color = skins[selectedSkin].color;
+                      const lighterColor = color.replace('#', '').match(/.{2}/g).map(hex => {
+                          const val = parseInt(hex, 16);
+                          return Math.min(255, val + 40).toString(16).padStart(2, '0');
+                      }).join('');
+                      target.style.backgroundColor = '#' + lighterColor;
+                  }
+              });
+              
+              target.addEventListener('mouseleave', function() {
+                  if (isGolden) {
+                      target.style.backgroundColor = '#ffdd00';
+                  } else {
+                      target.style.backgroundColor = skins[selectedSkin].color;
+                  }
+              });
+          }
+          
+          gameArea.appendChild(target);
+          return target;
+      }
+      
+      function getRandomPosition() {
+          const maxX = window.innerWidth - (50 + upgrades.targetSize.level * 10);
+          const maxY = window.innerHeight - (50 + upgrades.targetSize.level * 10);
+          const x = Math.random() * maxX;
+          const y = Math.random() * maxY;
+          return { x, y };
+      }
+      
+      function moveTargets() {
+          targets.forEach(target => {
+              if (target && target.parentNode) {
+                  const pos = getRandomPosition();
+                  target.style.left = pos.x + 'px';
+                  target.style.top = pos.y + 'px';
+              }
+          });
+      }
+      
+      function spawnTargets() {
+          targets.forEach(target => {
+              if (target && target.parentNode) {
+                  gameArea.removeChild(target);
+              }
+          });
+          targets = [];
+          
+          const targetCount = 1 + upgrades.multiTarget.level;
+          for (let i = 0; i < targetCount; i++) {
+              const isGolden = upgrades.goldTarget.level > 0 && Math.random() < 0.1;
+              targets.push(createTarget(isGolden));
+          }
+      }
+      
+      function startMoving() {
+          clearInterval(moveInterval);
+          const baseInterval = 1500;
+          const speedMultiplier = speed - (upgrades.slowMotion.level * 0.2);
+          const currentInterval = baseInterval / Math.max(speedMultiplier, 0.3);
+          
+          moveInterval = setInterval(moveTargets, currentInterval);
+      }
+      
+      function hitTarget(target) {
+          score++;
+          let coinsEarned = target.isGolden ? upgrades.coinsPerHit.level * 5 : upgrades.coinsPerHit.level;
+          
+
+          if (headshotMultiplier) {
+              coinsEarned *= 10;
+          }
+          
+          coins += coinsEarned;
+          
+          showCoinPopup(target, coinsEarned);
+          
+          scoreDisplay.textContent = `Score: ${score}`;
+          coinsDisplay.textContent = `Coins: ${coins}`;
+          
+          speed = 1.0 + (score * 0.1);
+          speedDisplay.textContent = `Speed: ${speed.toFixed(1)}x`;
+          
+          startMoving();
+          spawnTargets();
+          updateShopButtons();
+      }
+      
+      function showCoinPopup(target, amount) {
+          const popup = document.createElement('div');
+          popup.className = 'coin-popup';
+          popup.textContent = `+${amount}`;
+          popup.style.left = target.style.left;
+          popup.style.top = target.style.top;
+          if (headshotMultiplier && amount >= 10) {
+              popup.style.color = '#ff44ff';
+              popup.style.fontSize = '20px';
+          }
+          gameArea.appendChild(popup);
+          
+          setTimeout(() => {
+              if (popup.parentNode) {
+                  gameArea.removeChild(popup);
+              }
+          }, 1000);
+      }
+      
+      function resetGame() {
+          score = 0;
+          coins = 0;
+          speed = 1.0;
+          
+
+          headshotMultiplier = false;
+          rainbowUnlocked = false;
+          starharborUsed = false;
+          headshotUsed = false;
+          multiplierDisplay.style.display = 'none';
+          
+          upgrades = {
+              coinsPerHit: { level: 1, cost: 10, maxLevel: 10 },
+              targetSize: { level: 0, cost: 25, maxLevel: 5 },
+              slowMotion: { level: 0, cost: 50, maxLevel: 5 },
+              multiTarget: { level: 0, cost: 100, maxLevel: 3 },
+              goldTarget: { level: 0, cost: 200, maxLevel: 1 }
+          };
+          
+          skins = {
+              red: { owned: true, color: '#ff4444' },
+              blue: { owned: false, color: '#4444ff' },
+              green: { owned: false, color: '#44ff44' },
+              gold: { owned: false, color: '#ffdd00' },
+              rainbow: { owned: false, color: 'rainbow' }
+          };
+          selectedSkin = 'red';
+          
+          scoreDisplay.textContent = 'Score: 0';
+          coinsDisplay.textContent = 'Coins: 0';
+          speedDisplay.textContent = 'Speed: 1.0x';
+          
+          spawnTargets();
+          startMoving();
+          updateShopDisplay();
+      }
+      
+      function buyUpgrade(upgradeType) {
+          const upgrade = upgrades[upgradeType];
+          if (coins >= upgrade.cost && upgrade.level < upgrade.maxLevel) {
+              coins -= upgrade.cost;
+              upgrade.level++;
+              upgrade.cost = Math.floor(upgrade.cost * 1.5);
+              
+              coinsDisplay.textContent = `Coins: ${coins}`;
+              updateShopDisplay();
+              
+              if (upgradeType === 'targetSize' || upgradeType === 'multiTarget') {
+                  spawnTargets();
+              }
+              if (upgradeType === 'slowMotion') {
+                  startMoving();
+              }
+          }
+      }
+
+      function buySkin(skin) {
+          const costs = { blue: 500, green: 750, gold: 1000 };
+          const cost = costs[skin];
+          if (coins >= cost && !skins[skin].owned) {
+              coins -= cost;
+              skins[skin].owned = true;
+              coinsDisplay.textContent = `Coins: ${coins}`;
+              updateShopDisplay();
+              selectSkin(skin);
+          }
+      }
+
+      function selectSkin(skin) {
+          if (skins[skin].owned) {
+              selectedSkin = skin;
+              updateShopDisplay();
+              spawnTargets();
+          }
+      }
+      
+      function updateShopDisplay() {
+          document.getElementById('coinsLevel').textContent = upgrades.coinsPerHit.level;
+          document.getElementById('coinsCost').textContent = upgrades.coinsPerHit.cost;
+          
+          document.getElementById('sizeLevel').textContent = upgrades.targetSize.level;
+          document.getElementById('sizeCost').textContent = upgrades.targetSize.cost;
+          
+          document.getElementById('slowLevel').textContent = upgrades.slowMotion.level;
+          document.getElementById('slowCost').textContent = upgrades.slowMotion.cost;
+          
+          document.getElementById('multiLevel').textContent = upgrades.multiTarget.level;
+          document.getElementById('multiCost').textContent = upgrades.multiTarget.cost;
+          
+          document.getElementById('goldLevel').textContent = upgrades.goldTarget.level;
+          document.getElementById('goldCost').textContent = upgrades.goldTarget.cost;
+          
+
+          ['red', 'blue', 'green', 'gold'].forEach(skin => {
+              const button = document.querySelector(`#skin-${skin} .buy-btn`);
+              if (skins[skin].owned) {
+                  button.textContent = selectedSkin === skin ? 'Selected' : 'Select';
+                  button.disabled = selectedSkin === skin;
+                  button.onclick = () => selectSkin(skin);
+              } else {
+                  const costs = { blue: 500, green: 750, gold: 1000 };
+                  button.disabled = coins < costs[skin];
+                  button.textContent = 'Buy';
+                  button.onclick = () => buySkin(skin);
+              }
+          });
+
+          if (skins.rainbow.owned) {
+              document.getElementById('skin-rainbow').style.display = '';
+              const rainbowBtn = document.querySelector('#skin-rainbow .buy-btn');
+              rainbowBtn.textContent = selectedSkin === 'rainbow' ? 'Selected' : 'Select';
+              rainbowBtn.disabled = selectedSkin === 'rainbow';
+          } else {
+              document.getElementById('skin-rainbow').style.display = 'none';
+          }
+          
+          updateShopButtons();
+      }
+      
+      function updateShopButtons() {
+          Object.keys(upgrades).forEach(upgradeType => {
+              const upgrade = upgrades[upgradeType];
+              const button = document.querySelector(`#${upgradeType} .buy-btn`);
+              if (button) {
+                  button.disabled = coins < upgrade.cost || upgrade.level >= upgrade.maxLevel;
+                  if (upgrade.level >= upgrade.maxLevel) {
+                      button.textContent = 'MAX';
+                  } else {
+                      button.textContent = 'Buy';
+                  }
+              }
+          });
+      }
+
+
+      document.getElementById('cheatBtn').onclick = function() {
+          const input = document.getElementById('cheatInput').value.trim().toLowerCase();
+          const msg = document.getElementById('cheatMsg');
+          
+          if (input === 'starharbor' && !starharborUsed) {
+              coins += 10000000;
+              skins.rainbow.owned = true;
+              rainbowUnlocked = true;
+              starharborUsed = true;
+              updateShopDisplay();
+              coinsDisplay.textContent = `Coins: ${coins}`;
+              msg.textContent = 'Cheat activated! 10,000,000 coins and Rainbow skin unlocked!';
+              document.getElementById('cheatInput').value = '';
+          } else if (input === 'starharbor' && starharborUsed) {
+              msg.textContent = 'Already redeemed!';
+          } else if (input === 'headshot' && !headshotUsed) {
+              headshotMultiplier = true;
+              headshotUsed = true;
+              multiplierDisplay.style.display = 'block';
+              msg.textContent = 'Headshot mode activated! Permanent 10x coin multiplier!';
+              document.getElementById('cheatInput').value = '';
+          } else if (input === 'headshot' && headshotUsed) {
+              msg.textContent = 'Headshot multiplier already active!';
+          } else {
+              msg.textContent = 'Invalid code.';
+          }
+      };
+      
+      resetBtn.addEventListener('click', resetGame);
+      shopBtn.addEventListener('click', () => shop.style.display = 'block');
+      closeShop.addEventListener('click', () => shop.style.display = 'none');
+      
+      spawnTargets();
+      startMoving();
+      updateShopDisplay();
+  </script>
+</body>
+</html>
